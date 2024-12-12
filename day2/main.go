@@ -8,9 +8,8 @@ import (
 )
 
 type Report struct {
-	levels              []int
-	safe                bool
-	errorLevelPositions []int
+	levels []int
+	safe   bool
 }
 
 type CheckResult struct {
@@ -20,6 +19,7 @@ type CheckResult struct {
 func main() {
 	rawContent := parseFile("./data.txt")
 	rows := strings.Split(rawContent, "\n")
+	rows = rows[:len(rows)-1]
 	reports := make([]Report, len(rows))
 
 	for report_position, row := range rows {
@@ -48,9 +48,6 @@ func main() {
 
 		if newReport.safe {
 			safeReports += 1
-		} else {
-			fmt.Println("Report with errors:", reportIndex)
-			fmt.Println("Errors in:", newReport.errorLevelPositions)
 		}
 	}
 

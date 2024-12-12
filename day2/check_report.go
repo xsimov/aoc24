@@ -1,50 +1,47 @@
 package main
 
-import "math"
+import (
+	"math"
+)
 
 func CheckReport(report Report) Report {
-	var initialDirection string
-	reportLevels := report.levels
+	reportVector := reportVector{minDistance: 1}
 
-	if len(reportLevels) < 2 {
+	for i := 1; i < len(report.levels); i++ {
+		distance := report.levels[i-1] - report.levels[i]
+
+		reportVector.distances = append(reportVector.distances, distance)
+
+		distanceInAbsolute := int(math.Abs(float64(distance)))
+
+		if distanceInAbsolute > reportVector.maxDistance {
+			reportVector.maxDistance = distanceInAbsolute
+		}
+
+		if distanceInAbsolute < reportVector.minDistance {
+			reportVector.minDistance = distanceInAbsolute
+		}
+
+		reportVector.totalDistance += distance
+		reportVector.totalAbsDistance += int(math.Abs(float64(distance)))
+	}
+
+	if reportVector.maxDistance > 3 || reportVector.minDistance == 0 {
 		report.safe = false
-		return report
 	}
 
-	if reportLevels[0] > reportLevels[1] {
-		initialDirection = "down"
-	} else {
-		initialDirection = "up"
+	if int(math.Abs(float64(reportVector.totalDistance))) != reportVector.totalAbsDistance {
+		report.safe = false
 	}
 
-	for i := 1; i < len(reportLevels); i++ {
-		distance := math.Abs(float64(reportLevels[i-1] - reportLevels[i]))
-
-		if distance > 3 || distance == 0 {
-			report.safe = false
-		}
-
-		if initialDirection == "down" {
-			if reportLevels[i-1] > reportLevels[i] {
-				report.safe = report.safe && true
-			}
-
-			if reportLevels[i-1] < reportLevels[i] {
-				report.errorLevelPositions = append(report.errorLevelPositions, i)
-				report.safe = false
-			}
-		}
-
-		if initialDirection == "up" {
-			if reportLevels[i-1] > reportLevels[i] {
-				report.errorLevelPositions = append(report.errorLevelPositions, i)
-				report.safe = false
-			}
-
-			if reportLevels[i-1] < reportLevels[i] {
-				report.safe = report.safe && true
-			}
-		}
-	}
 	return report
+}
+
+type reportVector = struct {
+	distances             []int
+	maxDistance           int
+	minDistance           int
+	allInTheSameDirection bool
+	totalDistance         int
+	totalAbsDistance      int
 }
