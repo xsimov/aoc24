@@ -1,12 +1,13 @@
 package main
 
 import (
+	"reflect"
 	"testing"
 )
 
 func TestMain(t *testing.T) {
 	t.Run("expect upwards direction distance >3 to fail", func(t *testing.T) {
-		report := Report{levels: []int{1, 2, 6, 7, 9}, safe: true}
+		report := Report{levels: []int{1, 2, 6, 7, 12}, safe: true}
 
 		result := CheckReport(report)
 
@@ -25,13 +26,14 @@ func TestMain(t *testing.T) {
 		}
 	})
 
-	t.Run("expect report with change in direction to be unsafe", func(t *testing.T) {
-		report := Report{levels: []int{2, 3, 2, 1}, safe: true}
+	t.Run("uniq works as expected", func(t *testing.T) {
+		duplicates := []int{1, 2, 3, 3, 4, 5, 6, 6, 7, 8, 9}
+		expectedResult := []int{1, 2, 3, 4, 5, 6, 7, 8, 9}
 
-		result := CheckReport(report)
+		result := uniq(duplicates)
 
-		if result.safe {
-			t.Fatalf("Expected report not to be safe, got `safe: %v`", result.safe)
+		if !reflect.DeepEqual(result, expectedResult) {
+			t.Fatalf("Expected %v, got %v", expectedResult, result)
 		}
 	})
 }

@@ -1,47 +1,69 @@
 package main
 
 import (
+	"fmt"
 	"math"
 )
 
 func CheckReport(report Report) Report {
-	reportVector := reportVector{minDistance: 1}
+	vector := calculateVector(report)
+
+	if vector.maxDistance > 3 || vector.minDistance == 0 {
+		report.safe = false
+	}
+
+	if int(math.Abs(float64(vector.totalDistance))) != vector.totalAbsDistance {
+		report.safe = false
+	}
+
+	if report.safe {
+		return report
+	}
+
+	afterProblemDampener := ProblemDampener(report, vector)
+
+	return afterProblemDampener
+}
+
+func calculateVector(report Report) ReportVector {
+	vector := ReportVector{minDistance: 1}
 
 	for i := 1; i < len(report.levels); i++ {
 		distance := report.levels[i-1] - report.levels[i]
 
-		reportVector.distances = append(reportVector.distances, distance)
+		vector.distances = append(vector.distances, distance)
 
 		distanceInAbsolute := int(math.Abs(float64(distance)))
 
-		if distanceInAbsolute > reportVector.maxDistance {
-			reportVector.maxDistance = distanceInAbsolute
+		if distanceInAbsolute > vector.maxDistance {
+			vector.maxDistance = distanceInAbsolute
 		}
 
-		if distanceInAbsolute < reportVector.minDistance {
-			reportVector.minDistance = distanceInAbsolute
+		if distanceInAbsolute < vector.minDistance {
+			vector.minDistance = distanceInAbsolute
 		}
 
-		reportVector.totalDistance += distance
-		reportVector.totalAbsDistance += int(math.Abs(float64(distance)))
+		vector.totalDistance += distance
+		vector.totalAbsDistance += int(math.Abs(float64(distance)))
 	}
 
-	if reportVector.maxDistance > 3 || reportVector.minDistance == 0 {
-		report.safe = false
-	}
-
-	if int(math.Abs(float64(reportVector.totalDistance))) != reportVector.totalAbsDistance {
-		report.safe = false
-	}
-
-	return report
+	return vector
 }
 
-type reportVector = struct {
+type ReportVector struct {
 	distances             []int
 	maxDistance           int
 	minDistance           int
-	allInTheSameDirection bool
 	totalDistance         int
 	totalAbsDistance      int
+	allInTheSameDirection bool
+}
+
+func (r ReportVector) String() string {
+	return fmt.Sprintln("{\ndistances: ", r.distances,
+		",\nmaxDistance: ", r.maxDistance,
+		",\nminDistance: ", r.minDistance,
+		",\ntotalDistance: ", r.totalDistance,
+		",\ntotalAbsDistance: ", r.totalAbsDistance,
+		",\nallInTheSameDirection: ", r.allInTheSameDirection, "\n}")
 }

@@ -8,8 +8,13 @@ import (
 )
 
 type Report struct {
-	levels []int
-	safe   bool
+	levels                 []int
+	safe                   bool
+	problemDampenerApplied bool
+}
+
+func (r Report) String() string {
+	return fmt.Sprintf("{\nlevels: %v,\nsafe: %v,\nproblemDampenerApplied: %v\n}", r.levels, r.safe, r.problemDampenerApplied)
 }
 
 type CheckResult struct {
