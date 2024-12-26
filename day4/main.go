@@ -39,26 +39,32 @@ func main() {
 	fmt.Println(board)
 
 	found := 0
-	found += wordsFoundInDirection(&board, NORTH)
-	found += wordsFoundInDirection(&board, NORTH_EAST)
-	found += wordsFoundInDirection(&board, EAST)
-	found += wordsFoundInDirection(&board, SOUTH_EAST)
-	found += wordsFoundInDirection(&board, SOUTH)
-	found += wordsFoundInDirection(&board, SOUTH_WEST)
-	found += wordsFoundInDirection(&board, WEST)
-	found += wordsFoundInDirection(&board, NORTH_WEST)
-	fmt.Println(wordsFoundInDirection(&board, NORTH), NORTH)
-	fmt.Println(wordsFoundInDirection(&board, NORTH_EAST), NORTH_EAST)
-	fmt.Println(wordsFoundInDirection(&board, EAST), EAST)
-	fmt.Println(wordsFoundInDirection(&board, SOUTH_EAST), SOUTH_EAST)
-	fmt.Println(wordsFoundInDirection(&board, SOUTH), SOUTH)
-	fmt.Println(wordsFoundInDirection(&board, SOUTH_WEST), SOUTH_WEST)
-	fmt.Println(wordsFoundInDirection(&board, WEST), WEST)
-	fmt.Println(wordsFoundInDirection(&board, NORTH_WEST), NORTH_WEST)
+	resultFound := make(chan int, 8)
+	done := make(chan bool, 8)
+	go wordsFoundInDirection(&board, NORTH, resultFound, done)
+	go wordsFoundInDirection(&board, NORTH_EAST, resultFound, done)
+	go wordsFoundInDirection(&board, EAST, resultFound, done)
+	go wordsFoundInDirection(&board, SOUTH_EAST, resultFound, done)
+	go wordsFoundInDirection(&board, SOUTH, resultFound, done)
+	go wordsFoundInDirection(&board, SOUTH_WEST, resultFound, done)
+	go wordsFoundInDirection(&board, WEST, resultFound, done)
+	go wordsFoundInDirection(&board, NORTH_WEST, resultFound, done)
+
+	for i := 0; i < 8; i++ {
+		<-done
+	}
+
+	close(resultFound)
+
+	for elem := range resultFound {
+		fmt.Println("found:", elem)
+		found += elem
+	}
+
 	fmt.Println("total found:", found)
 }
 
-func wordsFoundInDirection(b *Board, d string) int {
+func wordsFoundInDirection(b *Board, d string, resultFound chan<- int, done chan<- bool) {
 	counter := 0
 	for x := 0; x <= b.xmax; x++ {
 		for y := 0; y <= b.ymax; y++ {
@@ -76,12 +82,12 @@ func wordsFoundInDirection(b *Board, d string) int {
 				}
 				if searching {
 					counter += 1
-					// fmt.Println("word found!", counter, "starting at x,y:", x, y, d)
 				}
 			}
 		}
 	}
-	return counter
+	resultFound <- counter
+	done <- true
 }
 
 type Board struct {
