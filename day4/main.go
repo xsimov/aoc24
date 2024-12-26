@@ -61,7 +61,48 @@ func main() {
 		found += elem
 	}
 
-	fmt.Println("total found:", found)
+	fmt.Println("Part 1: Total XMAS found:", found)
+
+	foundXMas := make(chan bool)
+
+	startedJobs := 0
+	for x := 0; x <= board.xmax; x++ {
+		for y := 0; y <= board.ymax; y++ {
+			current := board.grid[y][x]
+			if current.letter == string('A') {
+				go checkXFormedMAS(current, foundXMas)
+				startedJobs += 1
+			}
+		}
+	}
+
+	xFormedMAS := 0
+
+	for i := 0; i < startedJobs; i++ {
+		found := <-foundXMas
+		if found {
+			xFormedMAS += 1
+		}
+	}
+
+	fmt.Println("Part 2: Total XMAS found:", xFormedMAS)
+	fmt.Println("Part 2: Total As found:", startedJobs)
+}
+
+func checkXFormedMAS(c Cell, found chan<- bool) {
+	ne := c.Navigate(NORTH_EAST)
+	sw := c.Navigate(SOUTH_WEST)
+	nw := c.Navigate(NORTH_WEST)
+	se := c.Navigate(SOUTH_EAST)
+
+	var nwse, nesw bool
+	if (ne.letter == "M" && sw.letter == "S") || (ne.letter == "S" && sw.letter == "M") {
+		nwse = true
+	}
+	if (nw.letter == "M" && se.letter == "S") || (nw.letter == "S" && se.letter == "M") {
+		nesw = true
+	}
+	found <- (nwse && nesw)
 }
 
 func wordsFoundInDirection(b *Board, d string, resultFound chan<- int, done chan<- bool) {
